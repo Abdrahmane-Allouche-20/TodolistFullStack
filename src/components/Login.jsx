@@ -4,35 +4,36 @@ import '../App.css';
 import axios from '../axios';
 import Avatar from '../assets/vector.png';
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   const sendData = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('All fields are required.');
+      toast.error("All fields are required.");
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address.');
+      toast.error("Please enter a valid email address.");
       return;
     }
     setLoading(true);
     try {
       const response = await axios.post('user/login', { email, password });
-      console.log('Response from backend:', response.data);
+      localStorage.setItem('token', response.data.token); 
+      toast.success("Login successful!");
       setEmail('');
       setPassword('');
-      setError('');
-      navigate('/todo');
+      setTimeout(() => navigate('/todo'), 1500); // delay for UX
     } catch (error) {
-      setError(error.response?.data?.message || 'An error occurred during login.');
+      toast.error(error.response?.data?.message || 'An error occurred during login.');
     } finally {
       setLoading(false);
     }
@@ -40,12 +41,12 @@ function Login() {
 
   return (
     <div className="max-w-4xl mx-auto flex justify-center items-center relative h-screen z-50">
+      <ToastContainer />
       <div className="relative container w-[95%] md:w-1/2 px-4 py-10">
         <button onClick={() => navigate('/')} className="absolute top-4 right-4 text-xl md:text-3xl text-white">
           <TbDoorExit />
         </button>
         <img src={Avatar} loading="lazy" alt="AVATAR PIC" className="w-1/3 mx-auto" />
-        {error && <div className="text-red-500 text-center mb-4">{error}</div>}
         <form onSubmit={sendData} className='my-5 md:w-[90%] mx-auto'>
           <div className='mb-5 flex gap-5 items-center border-b text-white border-b-gray-400 p-2 text-base md:text-lg'>
             <MdEmail className="text-2xl" />
